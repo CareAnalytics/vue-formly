@@ -19,17 +19,44 @@ export default {
     type:function(){
       return 'formly_'+this.field.type;
     },
-    display: function(){
+    display: function () {
       // always show if there is no conditional display
       let displayType = typeof this.field.display;
-      if ( displayType !== 'function' && displayType !== 'string' ) return true;
+      if (displayType !== 'function' && displayType !== 'string') return true;
 
-      if ( displayType === 'function' ){
-	return this.field.display( this.field, this.model );       
+      //create variable to store the Boolean result value.
+      let resultValue
+
+      if (displayType === 'function') {
+        resultValue = this.field.display(this.field, this.model);
       } else {
-	let result = new Function('field', 'model',  'return '+this.field.display+';' );
-	return result.call({}, this.field, this.model);
+        let result = new Function('field', 'model', 'return ' + this.field.display + ';');
+        resultValue = result.call({}, this.field, this.model);
       }
+
+      //this has been added so that if the display value is 'false'; the 'form' object with object keys equivalent to the current 'field.key' will also be deleted.
+      //this has been done so that the form object reflects the state of the form field keys that are visible in the view.
+
+      //check if the result is 'false'.
+      if (!resultValue) {
+
+        //check if the current form field key exists in the 'form' object.
+        if (this.form[this.field.key]) {
+          //delete the form field key from 'form' object.
+          this.$delete(this.form, this.field.key)
+        }
+
+        //check if the current form field key exists in the '$errors' object element.
+        if (this.form.$errors[this.field.key]) {
+          //delete the form field key from 'form.$errors' object.
+          this.$delete(this.form.$errors, this.field.key)
+
+        }
+
+      }
+
+      //return the resultValue.
+      return resultValue;
     }
   },
   methods: {
