@@ -69,7 +69,7 @@
     "rollup": "^0.33.0",
     "rollup-plugin-babel": "^2.6.1",
     "sass-loader": "3.2.0",
-    "sinon": "1.17.5",
+    "sinon": "^7.2.3",
     "sinon-chai": "2.8.0",
     "style-loader": "0.13.1",
     "uglify-js": "^2.6.4",
