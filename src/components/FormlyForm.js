@@ -61,7 +61,7 @@ export default {
       });
     }
   },
-  props: ['form', 'model', 'fields', 'customLayout','tag'],
+  props: ['form', 'model', 'fields', 'customLayout','tag', 'formStepName'],
   computed:{
     keys(){
       let keys = {};
@@ -78,10 +78,19 @@ export default {
       if ( typeof this.model[ field.key ] == 'undefined' ) this.$set(this.model, field.key, '');
     });
 
-    
+    //first check if the 'this.form.$errors' and the 'this.form.$valid' object does not exist.
+    //only if they do not exist then create the default validation options setup.
+    if(typeof this.form.$errors == 'undefined' && typeof this.form.$valid == 'undefined' ){
+      
     //set our validation options
     this.$set(this.form, '$errors', {});
     this.$set(this.form, '$valid', true);
+
+    //if a form step name has been declared then set up an object to track validation for a section in a multi-step form.
+    if(typeof this.formStepName != 'undefined'){
+      //set our validation object for the form steps.
+      this.$set(this.form, '$stepValid', {});
+    }
 
     this.$watch('form.$errors', function(val){
       let valid = true;
@@ -95,6 +104,30 @@ export default {
     }, {
       deep: true
     });
+  }
+
+  if(typeof this.form['$stepValid'] != 'undefined'){
+    //set the valid status of a particular form step.
+    this.$set(this.form['$stepValid'], this.formStepName, true);
+  }
+
+  //this watch function has been added so that the valid status of a form can be set up.
+  this.$watch('form.$errors', function(val){
+    let stepValid = true;
+    let formFieldKeys = this.keys;
+    Object.keys(formFieldKeys).forEach((key)=>{
+      let errFieldForStep = this.form.$errors[key];
+      //check if 'undefined' before proceeding, as the form field may not have had a form field key defined therefore would not have a corresponding 'form.$errors' key.
+      if(typeof errFieldForStep != 'undefined'){
+        Object.keys(errFieldForStep).forEach((errKey) => {
+          if ( errFieldForStep[errKey] ) stepValid = false;
+        })
+      }
+    })
+    this.form['$stepValid'][this.formStepName] = stepValid;
+  }, {
+    deep: true
+  });
     
   }
 }
